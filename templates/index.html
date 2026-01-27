@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Face Attendance</title>
+</head>
+<body>
+  <h2>📸 Face Recognition Attendance System</h2>
+
+  <video id="video" width="420" autoplay></video>
+  <canvas id="canvas" width="420" height="320" style="display:none;"></canvas>
+
+  <br><br>
+  <button onclick="capture()">Capture & Mark Attendance</button>
+
+  <h3 id="result"></h3>
+
+  <script>
+    const video = document.getElementById("video");
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      });
+
+    function capture() {
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append("image", blob, "capture.jpg");
+
+        fetch("/predict", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("result").innerText =
+            data.success ? `✅ ${data.name} - ${data.message}` : `❌ ${data.message}`;
+        });
+      }, "image/jpeg");
+    }
+  </script>
+</body>
+</html>
