@@ -1,6 +1,6 @@
 flask
 gunicorn
 face-recognition
-opencv-python
+opencv-python-headless
 numpy
 pandas
