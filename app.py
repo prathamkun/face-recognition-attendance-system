@@ -10,7 +10,7 @@ app = Flask(__name__)
 ENCODINGS_FILE = "encodings.pkl"
 DB_FILE = "attendance.db"
 
-# Load trained encodings
+# Load encodings
 with open(ENCODINGS_FILE, "rb") as f:
     known_encodings, known_names = pickle.load(f)
 
@@ -36,7 +36,7 @@ def mark_attendance(name):
     conn = sqlite3.connect(DB_FILE)
     cur = conn.cursor()
 
-    # ✅ prevent duplicate entry per day
+    # Prevent duplicate entry same day
     cur.execute("SELECT * FROM attendance WHERE name=? AND date=?", (name, date))
     exists = cur.fetchone()
 
@@ -56,7 +56,7 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     if "image" not in request.files:
-        return jsonify({"success": False, "message": "No image received"}), 400
+        return jsonify({"success": False, "message": "No image received", "faces": []}), 400
 
     file = request.files["image"]
     img = face_recognition.load_image_file(file)
@@ -65,20 +65,35 @@ def predict():
     face_encodings = face_recognition.face_encodings(img, face_locations)
 
     if len(face_encodings) == 0:
-        return jsonify({"success": False, "message": "No face detected"}), 200
+        return jsonify({"success": False, "message": "No face detected", "faces": []}), 200
 
-    face_encoding = face_encodings[0]
+    results = []
 
-    face_distances = face_recognition.face_distance(known_encodings, face_encoding)
-    best_match_index = np.argmin(face_distances)
+    for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
+        face_distances = face_recognition.face_distance(known_encodings, face_encoding)
+        best_match_index = int(np.argmin(face_distances))
 
-    if face_distances[best_match_index] < 0.50:
-        name = known_names[best_match_index]
-        mark_attendance(name)
-        return jsonify({"success": True, "name": name, "message": "Attendance marked ✅"}), 200
+        if face_distances[best_match_index] < 0.50:
+            name = known_names[best_match_index]
+            mark_attendance(name)
+        else:
+            name = "Unknown"
 
-    return jsonify({"success": False, "name": "Unknown", "message": "Face not recognized"}), 200
+        results.append({
+            "name": name,
+            "box": {"top": top, "right": right, "bottom": bottom, "left": left}
+        })
+
+    return jsonify({"success": True, "message": "Done ✅", "faces": results}), 200
 
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
+
+@app.route("/attendance")
+def attendance_page():
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    rows = cur.execute("SELECT name, date, time FROM attendance ORDER BY id DESC").fetchall()
+    conn.close()
+    return render_template("attendance.html", rows=rows)
