@@ -5,58 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Smart Face Attendance</title>
 
-  <!-- Bootstrap CDN -->
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
     body{
-      background: #0b1220;
-      color: white;
+      font-family: Inter, sans-serif;
+      background: radial-gradient(1200px 600px at 10% 10%, #1b2a6b 0%, rgba(11,18,32,0) 55%),
+                  radial-gradient(1000px 500px at 90% 20%, #0ea5e9 0%, rgba(11,18,32,0) 55%),
+                  #0b1220;
+      color: #e6e9f2;
+      min-height: 100vh;
     }
-    .card{
-      background: #121a2b;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
+
+    .glass{
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 20px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+      backdrop-filter: blur(16px);
     }
-    .btn{
-      border-radius: 12px;
-    }
-    .video-box{
-      border-radius: 16px;
-      border: 2px solid rgba(255,255,255,0.1);
-      overflow: hidden;
-    }
-    #canvas{
-      border-radius: 16px;
-      border: 2px solid rgba(255,255,255,0.1);
-    }
-    .tag{
-      display: inline-block;
-      padding: 6px 12px;
+
+    .badge-soft{
+      background: rgba(34,197,94,0.15);
+      color: #86efac;
+      border: 1px solid rgba(34,197,94,0.25);
       border-radius: 999px;
-      font-size: 14px;
-      background: rgba(255,255,255,0.08);
+      padding: 6px 12px;
+      font-size: 13px;
+    }
+
+    .video-wrap{
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.03);
+    }
+
+    #canvas{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .muted{
+      color: rgba(230,233,242,0.65);
+    }
+
+    .status-pill{
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .btn{
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-weight: 600;
     }
   </style>
 </head>
 
 <body>
   <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
       <div>
-        <h2 class="fw-bold mb-1">📸 Smart Face Attendance</h2>
-        <div class="tag">Auto Mode + Confirm 3x ✅</div>
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="fw-bold m-0">✨ Smart Face Attendance</h2>
+          <span class="badge-soft">Confirm 3x ✅</span>
+        </div>
+        <div class="muted mt-2">Auto-recognition + Attendance marking with anti-false detection.</div>
       </div>
 
-      <a href="/attendance" class="btn btn-outline-light">📋 View Attendance</a>
+      <div class="d-flex gap-2">
+        <a href="/attendance" class="btn btn-outline-light">📋 View Attendance</a>
+      </div>
     </div>
 
     <div class="row g-4">
+      <!-- Left -->
       <div class="col-lg-6">
-        <div class="card p-4 h-100">
-          <h5 class="mb-3">Live Camera</h5>
+        <div class="glass p-4 h-100">
+          <h5 class="fw-semibold mb-3">Live Camera</h5>
 
-          <div class="video-box mb-3">
+          <div class="video-wrap mb-3">
             <video id="video" autoplay class="w-100"></video>
           </div>
 
@@ -65,21 +103,26 @@
             <button class="btn btn-danger w-100" onclick="stopSmart()">🛑 Stop</button>
           </div>
 
-          <p class="mt-3 mb-1 fw-semibold">Status:</p>
-          <div id="status" class="text-info">Waiting...</div>
+          <div class="mt-4">
+            <div class="status-pill mb-2">
+              <div class="fw-semibold">Status</div>
+              <div id="status" class="muted">Waiting...</div>
+            </div>
 
-          <p class="mt-3 mb-1 fw-semibold">Result:</p>
-          <div id="result" class="text-warning">No detection yet</div>
+            <div class="status-pill">
+              <div class="fw-semibold">Result</div>
+              <div id="result" class="muted">No detection yet</div>
+            </div>
+          </div>
         </div>
       </div>
 
+      <!-- Right -->
       <div class="col-lg-6">
-        <div class="card p-4 h-100">
-          <h5 class="mb-3">Captured Frame</h5>
+        <div class="glass p-4 h-100">
+          <h5 class="fw-semibold mb-3">Captured Frame</h5>
           <canvas id="canvas" width="520" height="390" class="w-100"></canvas>
-          <p class="mt-3 text-muted">
-            ✅ Box + Name will appear after detection.
-          </p>
+          <div class="muted mt-3">Bounding box + name will appear here after detection.</div>
         </div>
       </div>
     </div>
@@ -91,20 +134,23 @@
     const ctx = canvas.getContext("2d");
 
     let intervalId = null;
-
     let lastName = null;
     let sameCount = 0;
+
     const REQUIRED_CONFIRM = 3;
     const INTERVAL_MS = 1500;
 
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(stream => {
         video.srcObject = stream;
+      })
+      .catch(() => {
+        document.getElementById("status").innerText = "❌ Camera permission denied";
       });
 
     function startSmart() {
       if (intervalId) return;
-      document.getElementById("status").innerText = "✅ Smart Auto Mode running...";
+      document.getElementById("status").innerText = "✅ Smart Mode running...";
       intervalId = setInterval(() => smartCapture(), INTERVAL_MS);
     }
 
@@ -147,7 +193,7 @@
             else { lastName = detected; sameCount = 1; }
 
             document.getElementById("result").innerText =
-              `👤 ${detected} | ✅ Confirm ${sameCount}/${REQUIRED_CONFIRM}`;
+              `👤 ${detected} | Confirm ${sameCount}/${REQUIRED_CONFIRM}`;
 
             // draw box
             const box = data.faces[0].box;
@@ -155,8 +201,8 @@
 
             ctx.lineWidth = 4;
             ctx.strokeRect(left, top, right - left, bottom - top);
-            ctx.font = "20px Arial";
-            ctx.fillText(detected, left, top - 10);
+            ctx.font = "20px Inter";
+            ctx.fillText(detected, left, Math.max(20, top - 10));
 
             if (sameCount >= REQUIRED_CONFIRM) {
               document.getElementById("result").innerText =

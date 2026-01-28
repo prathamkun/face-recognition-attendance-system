@@ -53,6 +53,14 @@ def mark_attendance(name):
 def home():
     return render_template("index.html")
 
+@app.route("/attendance")
+def attendance_page():
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    rows = cur.execute("SELECT name, date, time FROM attendance ORDER BY id DESC").fetchall()
+    conn.close()
+    return render_template("attendance.html", rows=rows)
+
 @app.route("/predict", methods=["POST"])
 def predict():
     if "image" not in request.files:
@@ -89,11 +97,3 @@ def predict():
 if __name__ == "__main__":
     init_db()
     app.run(debug=True)
-
-@app.route("/attendance")
-def attendance_page():
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    rows = cur.execute("SELECT name, date, time FROM attendance ORDER BY id DESC").fetchall()
-    conn.close()
-    return render_template("attendance.html", rows=rows)
