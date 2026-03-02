@@ -1,0 +1,160 @@
+/* ===== MATTE BLACK + DEEP CRIMSON THEME ===== */
+
+:root {
+    --bg-main: #0f0f0f;
+    --bg-card: #171717;
+    --border-color: #2a2a2a;
+    --accent: #8B0000;
+    --accent-hover: #b30000;
+    --text-main: #f5f5f5;
+    --text-muted: #9a9a9a;
+}
+
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    font-family: "Sora",sans-serif;
+    margin: 0;
+}
+
+/* ===== CONTAINER FIX ===== */
+
+.container {
+    background-color: transparent !important;
+}
+
+/* ===== NAV SECTION ===== */
+
+.top-bar {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+/* ===== CARD STYLE ===== */
+
+.custom-card,
+.container-box {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 30px;
+}
+
+/* ===== INPUT ===== */
+
+input,
+select {
+    background-color: #1e1e1e !important;
+    border: 1px solid var(--border-color) !important;
+    color: white !important;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--accent) !important;
+    box-shadow: none !important;
+    outline: none;
+}
+
+/* ===== BUTTONS ===== */
+
+.btn-crimson {
+    background-color: var(--accent) !important;
+    border: none !important;
+    color: white !important;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-crimson:hover {
+    background-color: var(--accent-hover) !important;
+}
+
+.btn-outline-crimson {
+    border: 1px solid var(--accent) !important;
+    color: var(--accent) !important;
+    background: transparent !important;
+    padding: 10px 18px;
+    border-radius: 8px;
+}
+
+.btn-outline-crimson:hover {
+    background-color: var(--accent) !important;
+    color: white !important;
+}
+
+/* ===== TABLE ===== */
+
+table {
+    background-color: var(--bg-card) !important;
+    color: white !important;
+}
+
+th {
+    color: var(--accent) !important;
+}
+
+tr {
+    border-color: var(--border-color) !important;
+}
+
+/* ===== TEXT ===== */
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ===== LINKS ===== */
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--accent-hover);
+}
+/* MOBILE RESPONSIVE FIX */
+
+@media (max-width: 768px) {
+
+    .top-bar {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    .top-bar div:last-child {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+
+    .row {
+        flex-direction: column !important;
+    }
+
+    video, canvas {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .custom-card {
+        padding: 18px;
+    }
+
+    input {
+        font-size: 16px;
+    }
+
+    button {
+        font-size: 15px;
+    }
+}
