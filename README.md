@@ -1,43 +1,34 @@
-# Smart Face Recognition Attendance System 🎥✅
+# Smart Face Recognition Attendance System
 
-A Smart Face Recognition based Attendance System built using **Flask + OpenCV + face_recognition (dlib)**.
-It detects faces from webcam, recognizes known users, and marks attendance automatically using a smart confirmation logic.
+A web-based **AI-powered attendance system** that automatically marks attendance using **face recognition**.  
+It prevents proxy attendance and manages lecture sessions with time limits.
 
-Live Demo: https://web-production-3014.up.railway.app/
+Built with **Flask, OpenCV, Face Recognition, SQLite, and Bootstrap**.
+
 ---
 
 ## 🚀 Features
-- ✅ Face Recognition using trained encodings (`encodings.pkl`)
-- ✅ Smart Auto Attendance Mode (marks only after confirming face 3 times)
-- ✅ Prevents duplicate attendance for same user on same day
-- ✅ Attendance stored in **SQLite Database**
-- ✅ Admin page to view attendance records
+
+- 🔐 Admin Login & Signup
+- 📷 Face Recognition Attendance
+- ⏱ Lecture Session Timer
+- 👤 Prevents Proxy Attendance
+- 📊 Attendance Records Dashboard
+- 📱 Mobile Camera Compatible
+- 💾 SQLite Database Storage
+- 🎯 AI Face Encoding using `face_recognition`
+
 ---
 
-## 🛠 Tech Stack
-- Python 3.11
-- Flask
-- OpenCV
-- face_recognition / dlib
-- SQLite3
-- HTML + Bootstrap (CDN)
----  
+## 🧠 How It Works
 
-## 📂 Project Structure
-```
-face-recognition-system/
-│
-├── app.py
-├── train.py
-├── encodings.pkl
-├── attendance.db
-├── requirements.txt
-│
-├── dataset/
-│ ├── person1/
-│ └── person2/
-│
-└── templates/
-├── index.html
-└── attendance.html
-```
+1. Admin logs into the system
+2. Admin starts a **lecture session** with duration
+3. Camera captures student faces
+4. System compares with **trained encodings**
+5. If matched → attendance is marked
+6. Each student can be marked **only once per session**
+
+---
+
+## 🏗 Project Structure
