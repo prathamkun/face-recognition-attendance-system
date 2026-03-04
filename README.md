@@ -105,5 +105,84 @@ This will generate:
 encoding.pkl
 ```
 which stores all face embeddings
+---
+▶️ Run Application
+```
+python app.py
+```
+Open browser:
+```
+http://127.0.0.1:5000
+```
+---
+📊 Attendance Workflow
+
+1️⃣ Login as admin
+2️⃣ Start lecture session
+3️⃣ Students face the camera
+4️⃣ AI detects face
+5️⃣ Attendance marked automatically
+
+Each student is recorded once per session only.
+---
+🛠 Tech Stack
+Technology        |	Purpose
+Python	           | Backend
+Flask	            | Web framework
+OpenCV	           | Camera processing
+face_recognition 	| Face embeddings
+SQLite	           | Database
+Bootstrap        	| UI
+JavaScript       	| Camera + API calls
+---
+📱 Mobile Support
+
+The system supports mobile browsers using:
+```
+navigator.mediaDevices.getUserMedia()
+```
+Students can mark attendance using their phone camera.
+---
+🔐 Security
+
+Admin authentication system
+
+Prevents duplicate attendance
+
+Session-based lecture attendance
+---
+☁ Deployment
+
+Recommended platforms:
+
+Railway
+
+Render
+
+AWS
+
+Docker
+
+Run with production server:
+```
+gunicorn app:app
+```
+---
+📌 Future Improvements
+
+Student registration UI
+
+Live face capture dataset
+
+Email attendance reports
+
+Admin dashboard analytics
+
+Face anti-spoof detection
+
+---
+Author
+PrathamKun
+
  
 
