@@ -54,3 +54,56 @@ face-recognition-attendance-system
 │
 └── .gitignore
 ```
+
+---
+
+## ⚙️ Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/prathamkun/face-recognition-attendance-system.git
+cd face-recognition-attendance-system
+```
+
+Create virtual environment:
+```
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Install dependencies:
+```
+pip install -r requirements.txt
+```
+Add Face Dataset:
+ create Folder structure like:
+ ```
+dataset/
+   student_name/
+       img1.jpg
+       img2.jpg
+       img3.jpg
+```
+Example:
+```
+dataset/
+   john/
+       1.jpg
+       2.jpg
+   alice/
+       1.jpg
+       2.jpg
+```
+Train Face Model:
+Run
+```
+python train.py
+```
+This will generate:
+```
+encoding.pkl
+```
+which stores all face embeddings
+ 
+
