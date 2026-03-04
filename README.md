@@ -32,3 +32,25 @@ Built with **Flask, OpenCV, Face Recognition, SQLite, and Bootstrap**.
 ---
 
 ## 🏗 Project Structure
+```
+face-recognition-attendance-system
+│
+├── app.py # Main Flask application
+├── train.py # Face encoding training script
+├── encodings.pkl # Saved trained face encodings
+├── attendance.db # SQLite database
+├── requirements.txt # Python dependencies
+│
+├── dataset/ # Face images for training
+│
+├── templates/
+│ ├── index.html
+│ ├── login.html
+│ ├── signup.html
+│ └── attendance.html
+│
+├── static/
+│ └── style.css
+│
+└── .gitignore
+```
