@@ -10,7 +10,7 @@ itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
 numpy==1.26.4
-opencv-python-headless==4.13.0.92
+opencv-python-headless==4.9.0.80
 packaging==26.0
 pandas==2.3.3
 pillow==12.1.1
