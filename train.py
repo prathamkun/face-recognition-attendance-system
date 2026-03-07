@@ -23,11 +23,11 @@ for person_name in os.listdir(DATASET_DIR):
             known_encodings.append(encodings[0])
             known_names.append(person_name)
         else:
-            print(f"⚠️ No face found in: {img_path}")
+            print(f"[WARNING] No face found in: {img_path}")
 
 with open(ENCODINGS_FILE, "wb") as f:
     pickle.dump((known_encodings, known_names), f)
 
-print("✅ Training Completed!")
-print("✅ Saved:", ENCODINGS_FILE)
-print("✅ Total faces trained:", len(known_names))
+print("[OK] Training Completed!")
+print("[OK] Saved:", ENCODINGS_FILE)
+print("[OK] Total faces trained:", len(known_names))

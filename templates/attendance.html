@@ -25,6 +25,7 @@
           <th>#</th>
           <th>Name</th>
           <th>Lecture</th>
+          <th>Date</th>
           <th>Time</th>
         </tr>
       </thead>
@@ -34,7 +35,13 @@
           <td>{{ loop.index }}</td>
           <td>{{ r[0] }}</td>
           <td>{{ r[1] }}</td>
-          <td>{{ r[2] }}</td>
+          {% if ' ' in r[2] %}
+            <td>{{ r[2].split(' ')[0] }}</td>
+            <td>{{ r[2].split(' ')[1] }}</td>
+          {% else %}
+            <td>—</td>
+            <td>{{ r[2] }}</td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>

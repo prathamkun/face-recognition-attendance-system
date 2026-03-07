@@ -6,6 +6,10 @@ import pickle
 import face_recognition
 import numpy as np
 from datetime import datetime, timedelta
+import os
+import io
+import base64
+from PIL import Image
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -192,7 +196,7 @@ def predict():
             cur.execute("""
                 INSERT OR IGNORE INTO attendance (name, lecture_name, time)
                 VALUES (?, ?, ?)
-            """, (name, lecture_name, datetime.now().strftime("%H:%M:%S")))
+            """, (name, lecture_name, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
             conn.commit()
             conn.close()
@@ -206,6 +210,70 @@ def predict():
         })
 
     return jsonify({"success": True, "faces": results})
+
+@app.route("/register_face", methods=["GET", "POST"])
+@login_required
+def register_face():
+    global known_encodings, known_names
+
+    if request.method == "GET":
+        return render_template("register_face.html")
+    
+    # POST request handling
+    data = request.json
+    name = data.get("name")
+    images_base64 = data.get("images", [])
+
+    if not name or not images_base64:
+        return jsonify({"success": False, "message": "Name and images are required."})
+    
+    # Create directory for the person if it doesn't exist
+    dataset_dir = os.path.join("dataset", name)
+    os.makedirs(dataset_dir, exist_ok=True)
+
+    saved_count = 0
+    for i, img_b64 in enumerate(images_base64):
+        try:
+            # Remove header if present (e.g., "data:image/jpeg;base64,")
+            if "," in img_b64:
+                img_b64 = img_b64.split(",")[1]
+            
+            img_data = base64.b64decode(img_b64)
+            
+            # Save raw JPEG bytes directly to file
+            img_path = os.path.join(dataset_dir, f"{i}.jpg")
+            with open(img_path, "wb") as img_file:
+                img_file.write(img_data)
+            
+            saved_count += 1
+
+        except Exception as e:
+            print(f"Error saving image {i}: {e}")
+            continue
+    
+    if saved_count == 0:
+        return jsonify({"success": False, "message": "Failed to save any images."})
+
+    # Run train.py to retrain the model with the new dataset
+    import subprocess
+    import sys
+    try:
+        result = subprocess.run(
+            [sys.executable, "train.py"],
+            capture_output=True, text=True, timeout=120
+        )
+        print(result.stdout)
+        if result.returncode != 0:
+            print(f"train.py error: {result.stderr}")
+            return jsonify({"success": False, "message": f"Training failed: {result.stderr}"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Training error: {str(e)}"})
+
+    # Reload the updated encodings into memory
+    with open(ENCODINGS_FILE, "rb") as f:
+        known_encodings, known_names = pickle.load(f)
+
+    return jsonify({"success": True, "message": f"Saved {saved_count} images and trained model successfully! Total faces: {len(known_names)}"})
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

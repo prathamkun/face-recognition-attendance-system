@@ -20,6 +20,7 @@
     <div>
       <h3>Smart Face Attendance</h3>
       <div class="text-muted">Anti-proxy + AI verification system</div>
+      <div id="liveClock" class="fw-bold mt-1" style="font-size: 0.95rem; color: var(--crimson, crimson);"></div>
 
       {% if active_session %}
       <div class="mt-2">
@@ -40,6 +41,7 @@
 
     <div class="d-flex gap-2 align-items-center mt-3 mt-md-0">
       <span class="text-muted small">Logged in: {{ current_user.email }}</span>
+      <a href="/register_face" class="btn btn-outline-crimson btn-sm">Register Face</a>
       <a href="/attendance" class="btn btn-outline-crimson btn-sm">Attendance</a>
       <a href="/logout" class="btn btn-crimson btn-sm">Logout</a>
     </div>
@@ -99,6 +101,19 @@
 </div>
 
 <script>
+
+/* =============================
+   LIVE DATE & TIME CLOCK
+============================= */
+function updateClock() {
+    const now = new Date();
+    const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+    const dateStr = now.toLocaleDateString('en-IN', options);
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById("liveClock").innerText = dateStr + "  |  " + timeStr;
+}
+setInterval(updateClock, 1000);
+updateClock();
 
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
