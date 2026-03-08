@@ -193,20 +193,29 @@ def predict():
             conn = sqlite3.connect(DB_FILE)
             cur = conn.cursor()
 
+            # Check if already marked
             cur.execute("""
-                INSERT OR IGNORE INTO attendance (name, lecture_name, time)
-                VALUES (?, ?, ?)
-            """, (name, lecture_name, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                SELECT COUNT(*) FROM attendance WHERE name=? AND lecture_name=?
+            """, (name, lecture_name))
+            already_exists = cur.fetchone()[0] > 0
 
-            conn.commit()
+            if not already_exists:
+                cur.execute("""
+                    INSERT OR IGNORE INTO attendance (name, lecture_name, time)
+                    VALUES (?, ?, ?)
+                """, (name, lecture_name, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                conn.commit()
+
             conn.close()
 
         else:
             name = "Unknown"
+            already_exists = False
 
         results.append({
             "name": name,
-            "box": {"top": top, "right": right, "bottom": bottom, "left": left}
+            "box": {"top": top, "right": right, "bottom": bottom, "left": left},
+            "already_marked": already_exists
         })
 
     return jsonify({"success": True, "faces": results})

@@ -122,6 +122,7 @@ const ctx = canvas.getContext("2d");
 let intervalId = null;
 let lastName = null;
 let sameCount = 0;
+let confirmedNames = new Set();
 
 const REQUIRED_CONFIRM = 3;
 const INTERVAL_MS = 1500;
@@ -250,8 +251,14 @@ function startSmart() {
         );
 
         if (sameCount >= REQUIRED_CONFIRM) {
-            document.getElementById("result").innerText =
-                `Attendance Marked for ${detected}`;
+            if (confirmedNames.has(detected)) {
+                document.getElementById("result").innerText =
+                    `${detected} is already marked in the current session`;
+            } else {
+                document.getElementById("result").innerText =
+                    `Attendance Marked for ${detected}`;
+                confirmedNames.add(detected);
+            }
             lastName = null;
             sameCount = 0;
         }
