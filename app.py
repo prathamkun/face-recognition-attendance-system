@@ -7,9 +7,9 @@ import face_recognition
 import numpy as np
 from datetime import datetime, timedelta
 import os
-import io
 import base64
-from PIL import Image
+import subprocess
+import sys
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -22,7 +22,9 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 
 
-
+# =============================
+# USER CLASS
+# =============================
 
 class User(UserMixin):
     def __init__(self, id, email):
@@ -32,28 +34,43 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, timeout=10)
     cur = conn.cursor()
+
     cur.execute("SELECT id, email FROM users WHERE id=?", (user_id,))
     user = cur.fetchone()
+
     conn.close()
+
     if user:
         return User(user[0], user[1])
+
     return None
 
 
+# =============================
+# LOAD ENCODINGS SAFELY
+# =============================
+
+known_encodings = []
+known_names = []
+
+if os.path.exists(ENCODINGS_FILE):
+    with open(ENCODINGS_FILE, "rb") as f:
+        known_encodings, known_names = pickle.load(f)
 
 
-with open(ENCODINGS_FILE, "rb") as f:
-    known_encodings, known_names = pickle.load(f)
-
-
+# =============================
+# DATABASE INIT
+# =============================
 
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
+
+    conn = sqlite3.connect(DB_FILE, timeout=10)
+    conn.execute("PRAGMA journal_mode=WAL;")
+
     cur = conn.cursor()
 
-    # Users table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,7 +80,6 @@ def init_db():
         )
     """)
 
-    # Sessions table
     cur.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,7 +89,6 @@ def init_db():
         )
     """)
 
-   
     cur.execute("""
         CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,10 +103,15 @@ def init_db():
     conn.close()
 
 
+# =============================
+# ACTIVE SESSION
+# =============================
 
 def get_active_session():
-    conn = sqlite3.connect(DB_FILE)
+
+    conn = sqlite3.connect(DB_FILE, timeout=10)
     cur = conn.cursor()
+
     now = datetime.now().isoformat()
 
     cur.execute("""
@@ -103,43 +123,65 @@ def get_active_session():
     """, (now,))
 
     session = cur.fetchone()
+
     conn.close()
+
     return session
 
 
+# =============================
+# HOME PAGE
+# =============================
 
 @app.route("/")
 @login_required
 def home():
-    active_session = get_active_session()
-    return render_template("index.html", active_session=active_session)
 
+    active_session = get_active_session()
+
+    return render_template(
+        "index.html",
+        active_session=active_session
+    )
+
+
+# =============================
+# START SESSION
+# =============================
 
 @app.route("/start_session", methods=["POST"])
 @login_required
 def start_session():
+
     lecture_name = request.form["lecture_name"]
     duration = int(request.form["duration"])
 
     start_time = datetime.now()
     end_time = start_time + timedelta(minutes=duration)
 
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(DB_FILE, timeout=10)
     cur = conn.cursor()
+
     cur.execute("""
         INSERT INTO sessions (lecture_name, start_time, end_time)
         VALUES (?, ?, ?)
     """, (lecture_name, start_time.isoformat(), end_time.isoformat()))
+
     conn.commit()
     conn.close()
 
     return redirect(url_for("home"))
 
 
+# =============================
+# ATTENDANCE PAGE
+# =============================
+
 @app.route("/attendance")
 @login_required
 def attendance_page():
-    conn = sqlite3.connect(DB_FILE)
+
+    conn = sqlite3.connect(DB_FILE, timeout=10)
     cur = conn.cursor()
 
     cur.execute("""
@@ -149,10 +191,18 @@ def attendance_page():
     """)
 
     rows = cur.fetchall()
+
     conn.close()
 
-    return render_template("attendance.html", rows=rows)
+    return render_template(
+        "attendance.html",
+        rows=rows
+    )
 
+
+# =============================
+# FACE PREDICTION
+# =============================
 
 @app.route("/predict", methods=["POST"])
 @login_required
@@ -172,6 +222,7 @@ def predict():
         return jsonify({"success": False, "faces": []})
 
     file = request.files["image"]
+
     img = face_recognition.load_image_file(file)
 
     face_locations = face_recognition.face_locations(img)
@@ -180,142 +231,188 @@ def predict():
     if len(face_encodings) == 0:
         return jsonify({"success": False, "faces": []})
 
+    conn = sqlite3.connect(DB_FILE, timeout=10)
+    cur = conn.cursor()
+
     results = []
 
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
 
-        face_distances = face_recognition.face_distance(known_encodings, face_encoding)
+        face_distances = face_recognition.face_distance(
+            known_encodings,
+            face_encoding
+        )
+
         best_match_index = int(np.argmin(face_distances))
 
-        if face_distances[best_match_index] < 0.50:
+        if face_distances[best_match_index] < 0.45:
+
             name = known_names[best_match_index]
 
-            conn = sqlite3.connect(DB_FILE)
-            cur = conn.cursor()
-
-            # Check if already marked
             cur.execute("""
-                SELECT COUNT(*) FROM attendance WHERE name=? AND lecture_name=?
+                SELECT COUNT(*)
+                FROM attendance
+                WHERE name=? AND lecture_name=?
             """, (name, lecture_name))
+
             already_exists = cur.fetchone()[0] > 0
 
             if not already_exists:
+
                 cur.execute("""
-                    INSERT OR IGNORE INTO attendance (name, lecture_name, time)
+                    INSERT INTO attendance (name, lecture_name, time)
                     VALUES (?, ?, ?)
-                """, (name, lecture_name, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                """, (
+                    name,
+                    lecture_name,
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                ))
+
                 conn.commit()
 
-            conn.close()
-
         else:
+
             name = "Unknown"
             already_exists = False
 
         results.append({
             "name": name,
-            "box": {"top": top, "right": right, "bottom": bottom, "left": left},
+            "box": {
+                "top": top,
+                "right": right,
+                "bottom": bottom,
+                "left": left
+            },
             "already_marked": already_exists
         })
 
-    return jsonify({"success": True, "faces": results})
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "faces": results
+    })
+
+
+# =============================
+# REGISTER FACE
+# =============================
 
 @app.route("/register_face", methods=["GET", "POST"])
 @login_required
 def register_face():
+
     global known_encodings, known_names
 
     if request.method == "GET":
         return render_template("register_face.html")
-    
-    # POST request handling
+
     data = request.json
+
     name = data.get("name")
     images_base64 = data.get("images", [])
 
     if not name or not images_base64:
-        return jsonify({"success": False, "message": "Name and images are required."})
-    
-    # Create directory for the person if it doesn't exist
+        return jsonify({
+            "success": False,
+            "message": "Name and images required"
+        })
+
     dataset_dir = os.path.join("dataset", name)
+
     os.makedirs(dataset_dir, exist_ok=True)
 
     saved_count = 0
+
     for i, img_b64 in enumerate(images_base64):
-        try:
-            # Remove header if present (e.g., "data:image/jpeg;base64,")
-            if "," in img_b64:
-                img_b64 = img_b64.split(",")[1]
-            
-            img_data = base64.b64decode(img_b64)
-            
-            # Save raw JPEG bytes directly to file
-            img_path = os.path.join(dataset_dir, f"{i}.jpg")
-            with open(img_path, "wb") as img_file:
-                img_file.write(img_data)
-            
-            saved_count += 1
 
-        except Exception as e:
-            print(f"Error saving image {i}: {e}")
-            continue
-    
-    if saved_count == 0:
-        return jsonify({"success": False, "message": "Failed to save any images."})
+        if "," in img_b64:
+            img_b64 = img_b64.split(",")[1]
 
-    # Run train.py to retrain the model with the new dataset
-    import subprocess
-    import sys
-    try:
-        result = subprocess.run(
-            [sys.executable, "train.py"],
-            capture_output=True, text=True, timeout=120
-        )
-        print(result.stdout)
-        if result.returncode != 0:
-            print(f"train.py error: {result.stderr}")
-            return jsonify({"success": False, "message": f"Training failed: {result.stderr}"})
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Training error: {str(e)}"})
+        img_data = base64.b64decode(img_b64)
 
-    # Reload the updated encodings into memory
-    with open(ENCODINGS_FILE, "rb") as f:
-        known_encodings, known_names = pickle.load(f)
+        img_path = os.path.join(dataset_dir, f"{i}.jpg")
 
-    return jsonify({"success": True, "message": f"Saved {saved_count} images and trained model successfully! Total faces: {len(known_names)}"})
+        with open(img_path, "wb") as f:
+            f.write(img_data)
+
+        saved_count += 1
+
+    subprocess.run(
+        [sys.executable, "train.py"],
+        capture_output=True,
+        text=True
+    )
+
+    if os.path.exists(ENCODINGS_FILE):
+
+        with open(ENCODINGS_FILE, "rb") as f:
+            known_encodings, known_names = pickle.load(f)
+
+    return jsonify({
+        "success": True,
+        "message": f"{saved_count} images saved and model trained"
+    })
+
+
+# =============================
+# LOGIN
+# =============================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
+
         email = request.form["email"]
         password = request.form["password"]
 
-        conn = sqlite3.connect(DB_FILE)
+        conn = sqlite3.connect(DB_FILE, timeout=10)
         cur = conn.cursor()
-        cur.execute("SELECT id, email, password_hash FROM users WHERE email=?", (email,))
+
+        cur.execute("""
+            SELECT id, email, password_hash
+            FROM users
+            WHERE email=?
+        """, (email,))
+
         user = cur.fetchone()
+
         conn.close()
 
         if user and check_password_hash(user[2], password):
+
             login_user(User(user[0], user[1]))
+
             return redirect(url_for("home"))
 
     return render_template("login.html")
 
 
+# =============================
+# SIGNUP
+# =============================
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+
     if request.method == "POST":
+
         name = request.form["name"]
         email = request.form["email"]
-        password = generate_password_hash(request.form["password"])
 
-        conn = sqlite3.connect(DB_FILE)
+        password = generate_password_hash(
+            request.form["password"]
+        )
+
+        conn = sqlite3.connect(DB_FILE, timeout=10)
         cur = conn.cursor()
+
         cur.execute("""
             INSERT INTO users (name, email, password_hash)
             VALUES (?, ?, ?)
         """, (name, email, password))
+
         conn.commit()
         conn.close()
 
@@ -324,13 +421,25 @@ def signup():
     return render_template("signup.html")
 
 
+# =============================
+# LOGOUT
+# =============================
+
 @app.route("/logout")
 @login_required
 def logout():
+
     logout_user()
+
     return redirect(url_for("login"))
 
 
+# =============================
+# MAIN
+# =============================
+
 if __name__ == "__main__":
+
     init_db()
+
     app.run(debug=True)
