@@ -337,10 +337,9 @@ def register_face():
     roll_no = data.get("roll_no", "").strip()
     images_base64 = data.get("images", [])
 
-<<<<<<< HEAD
     if not name or not roll_no or not images_base64:
         return jsonify({"success": False, "message": "Name, Roll Number, and images are required."})
-    
+
     # Check if roll number already exists
     conn = sqlite3.connect(DB_FILE)
     cur = conn.cursor()
@@ -353,16 +352,6 @@ def register_face():
     # Use roll_no as dataset folder name for uniqueness
     folder_name = f"{name} ({roll_no})"
     dataset_dir = os.path.join("dataset", folder_name)
-=======
-    if not name or not images_base64:
-        return jsonify({
-            "success": False,
-            "message": "Name and images required"
-        })
-
-    dataset_dir = os.path.join("dataset", name)
-
->>>>>>> 0c8d89e5debc2dcffef38aee879c174ff1082a12
     os.makedirs(dataset_dir, exist_ok=True)
 
     saved_count = 0
@@ -376,16 +365,6 @@ def register_face():
 
         img_path = os.path.join(dataset_dir, f"{i}.jpg")
 
-<<<<<<< HEAD
-    # Save name and roll_no to database
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute("INSERT INTO registered_faces (name, roll_no) VALUES (?, ?)", (name, roll_no))
-    conn.commit()
-    conn.close()
-
-    return jsonify({"success": True, "message": f"Saved {saved_count} images and trained model for {name} (Roll: {roll_no})! Total faces: {len(known_names)}"})
-=======
         with open(img_path, "wb") as f:
             f.write(img_data)
 
@@ -402,16 +381,19 @@ def register_face():
         with open(ENCODINGS_FILE, "rb") as f:
             known_encodings, known_names = pickle.load(f)
 
-    return jsonify({
-        "success": True,
-        "message": f"{saved_count} images saved and model trained"
-    })
+    # Save name and roll_no to database
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO registered_faces (name, roll_no) VALUES (?, ?)", (name, roll_no))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "message": f"Saved {saved_count} images and trained model for {name} (Roll: {roll_no})! Total faces: {len(known_names)}"})
 
 
 # =============================
 # LOGIN
 # =============================
->>>>>>> 0c8d89e5debc2dcffef38aee879c174ff1082a12
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
