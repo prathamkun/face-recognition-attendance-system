@@ -48,6 +48,12 @@
             <input type="text" class="form-control form-control-lg" id="personName" placeholder="Enter full name" required>
         </div>
 
+        <div class="mb-3">
+            <label for="rollNo" class="form-label fw-bold">Roll Number</label>
+            <input type="text" class="form-control form-control-lg" id="rollNo" placeholder="Enter roll number (must be unique)" required>
+            <div id="rollNoFeedback" class="mt-1 small"></div>
+        </div>
+
         <div class="camera-container text-center mt-4">
             <video id="videoElement" autoplay playsinline muted class="w-100 rounded bg-dark" style="min-height: 300px; max-height: 480px; object-fit: cover;"></video>
             
@@ -76,15 +82,18 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('startBtn');
 const nameInput = document.getElementById('personName');
+const rollNoInput = document.getElementById('rollNo');
+const rollNoFeedback = document.getElementById('rollNoFeedback');
 const statusText = document.getElementById('statusText');
 const progressContainer = document.getElementById('progressContainer');
 const progressBar = document.getElementById('progressBar');
 
 const TOTAL_CAPTURES = 10;
-const CAPTURE_INTERVAL_MS = 500; // time between captures
+const CAPTURE_INTERVAL_MS = 500;
 let capturedImages = [];
 let captureCount = 0;
 let captureInterval;
+let rollNoValid = false;
 
 // Initialize Camera
 function startCamera() {
@@ -106,11 +115,56 @@ function startCamera() {
 
 startCamera();
 
+// Check roll number uniqueness when user leaves the field
+let checkTimeout;
+rollNoInput.addEventListener('input', function() {
+    clearTimeout(checkTimeout);
+    const rollNo = rollNoInput.value.trim();
+    
+    if (!rollNo) {
+        rollNoFeedback.innerHTML = '';
+        rollNoValid = false;
+        return;
+    }
+
+    rollNoFeedback.innerHTML = '<span class="text-muted">Checking...</span>';
+
+    checkTimeout = setTimeout(() => {
+        fetch('/check_roll_no', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ roll_no: rollNo })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.exists) {
+                rollNoFeedback.innerHTML = '<span class="text-danger fw-bold">Roll number already registered</span>';
+                rollNoValid = false;
+            } else {
+                rollNoFeedback.innerHTML = '<span class="text-success fw-bold">Roll number available</span>';
+                rollNoValid = true;
+            }
+        });
+    }, 400);
+});
+
 function startRegistration() {
     const name = nameInput.value.trim();
+    const rollNo = rollNoInput.value.trim();
+
     if (!name) {
         alert("Please enter a name first!");
         nameInput.focus();
+        return;
+    }
+    if (!rollNo) {
+        alert("Please enter a roll number!");
+        rollNoInput.focus();
+        return;
+    }
+    if (!rollNoValid) {
+        alert("Roll number is already registered or not yet validated!");
+        rollNoInput.focus();
         return;
     }
 
@@ -119,36 +173,31 @@ function startRegistration() {
     captureCount = 0;
     startBtn.disabled = true;
     nameInput.disabled = true;
+    rollNoInput.disabled = true;
     progressContainer.classList.remove('d-none');
     
-    // Set canvas dimensions to match video stream precisely
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    statusText.innerText = `Preparing to capture ${name}... Look at the camera!`;
+    statusText.innerText = `Preparing to capture ${name} (${rollNo})... Look at the camera!`;
     
-    // Short delay before starting capture so user can get ready
     setTimeout(captureFrames, 1000);
 }
 
 function captureFrames() {
     captureInterval = setInterval(() => {
         if (captureCount < TOTAL_CAPTURES) {
-            // Draw current video frame to hidden canvas
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Get base64 JPEG from canvas
             const imageData = canvas.toDataURL('image/jpeg', 0.9);
             capturedImages.push(imageData);
             
             captureCount++;
             
-            // Update UI
             progressBar.style.width = `${(captureCount / TOTAL_CAPTURES) * 100}%`;
             statusText.innerText = `Captured ${captureCount} / ${TOTAL_CAPTURES}... Keep still...`;
             
         } else {
-            // Finished capturing
             clearInterval(captureInterval);
             statusText.innerText = `Finished capturing! Uploading dataset and training... Please wait...`;
             sendDataToServer();
@@ -158,6 +207,7 @@ function captureFrames() {
 
 function sendDataToServer() {
     const name = nameInput.value.trim();
+    const rollNo = rollNoInput.value.trim();
     
     fetch('/register_face', {
         method: 'POST',
@@ -166,25 +216,26 @@ function sendDataToServer() {
         },
         body: JSON.stringify({
             name: name,
+            roll_no: rollNo,
             images: capturedImages
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            statusText.innerHTML = `<span class="text-success">✅ ${data.message}</span>`;
+            statusText.innerHTML = `<span class="text-success">${data.message}</span>`;
             setTimeout(() => {
                 alert("Face registered successfully! Redirecting to home...");
                 window.location.href = "/";
             }, 2000);
         } else {
-            statusText.innerHTML = `<span class="text-danger">❌ Error: ${data.message}</span>`;
+            statusText.innerHTML = `<span class="text-danger">Error: ${data.message}</span>`;
             resetForm();
         }
     })
     .catch((error) => {
         console.error('Error:', error);
-        statusText.innerHTML = `<span class="text-danger">❌ Network Error. Make sure the server is running.</span>`;
+        statusText.innerHTML = `<span class="text-danger">Network Error. Make sure the server is running.</span>`;
         resetForm();
     });
 }
@@ -193,6 +244,7 @@ function resetForm() {
     startBtn.disabled = false;
     startBtn.innerText = "Try Again";
     nameInput.disabled = false;
+    rollNoInput.disabled = false;
 }
 </script>
 

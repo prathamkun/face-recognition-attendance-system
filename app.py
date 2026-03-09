@@ -84,6 +84,15 @@ def init_db():
         )
     """)
 
+    # Registered faces table
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS registered_faces (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            roll_no TEXT UNIQUE
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -220,6 +229,21 @@ def predict():
 
     return jsonify({"success": True, "faces": results})
 
+@app.route("/check_roll_no", methods=["POST"])
+@login_required
+def check_roll_no():
+    data = request.json
+    roll_no = data.get("roll_no", "").strip()
+    if not roll_no:
+        return jsonify({"exists": False})
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM registered_faces WHERE roll_no=?", (roll_no,))
+    exists = cur.fetchone()[0] > 0
+    conn.close()
+    return jsonify({"exists": exists})
+
+
 @app.route("/register_face", methods=["GET", "POST"])
 @login_required
 def register_face():
@@ -231,13 +255,24 @@ def register_face():
     # POST request handling
     data = request.json
     name = data.get("name")
+    roll_no = data.get("roll_no", "").strip()
     images_base64 = data.get("images", [])
 
-    if not name or not images_base64:
-        return jsonify({"success": False, "message": "Name and images are required."})
+    if not name or not roll_no or not images_base64:
+        return jsonify({"success": False, "message": "Name, Roll Number, and images are required."})
     
-    # Create directory for the person if it doesn't exist
-    dataset_dir = os.path.join("dataset", name)
+    # Check if roll number already exists
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM registered_faces WHERE roll_no=?", (roll_no,))
+    if cur.fetchone()[0] > 0:
+        conn.close()
+        return jsonify({"success": False, "message": "Roll number already registered"})
+    conn.close()
+
+    # Use roll_no as dataset folder name for uniqueness
+    folder_name = f"{name} ({roll_no})"
+    dataset_dir = os.path.join("dataset", folder_name)
     os.makedirs(dataset_dir, exist_ok=True)
 
     saved_count = 0
@@ -282,7 +317,14 @@ def register_face():
     with open(ENCODINGS_FILE, "rb") as f:
         known_encodings, known_names = pickle.load(f)
 
-    return jsonify({"success": True, "message": f"Saved {saved_count} images and trained model successfully! Total faces: {len(known_names)}"})
+    # Save name and roll_no to database
+    conn = sqlite3.connect(DB_FILE)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO registered_faces (name, roll_no) VALUES (?, ?)", (name, roll_no))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True, "message": f"Saved {saved_count} images and trained model for {name} (Roll: {roll_no})! Total faces: {len(known_names)}"})
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
