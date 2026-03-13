@@ -162,6 +162,10 @@ def home():
 @login_required
 def start_session():
 
+    # Prevent overlapping sessions
+    if get_active_session():
+        return redirect(url_for("home"))
+
     lecture_name = request.form["lecture_name"]
     duration = int(request.form["duration"])
 
@@ -183,6 +187,31 @@ def start_session():
 
 
 # =============================
+# STOP SESSION
+# =============================
+
+@app.route("/stop_session", methods=["POST"])
+@login_required
+def stop_session():
+
+    now = datetime.now().isoformat()
+
+    conn = sqlite3.connect(DB_FILE, timeout=10)
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE sessions
+        SET end_time = ?
+        WHERE end_time > ?
+    """, (now, now))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("home"))
+
+
+# =============================
 # ATTENDANCE PAGE
 # =============================
 
@@ -196,16 +225,48 @@ def attendance_page():
     cur.execute("""
         SELECT name, lecture_name, time
         FROM attendance
-        ORDER BY id DESC
+        ORDER BY DATE(time) DESC, lecture_name DESC, name ASC
     """)
 
     rows = cur.fetchall()
-
     conn.close()
+
+    # Group rows into: { date_str: { session_name: [ {name, roll_no, time} ] } }
+    from collections import OrderedDict
+    import re
+    grouped = OrderedDict()
+    for full_name, lecture_name, time_str in rows:
+        # Extract name and roll_no from "Name (roll_no)" format
+        match = re.match(r'^(.+?)\s*\((\S+)\)$', full_name)
+        if match:
+            display_name = match.group(1).strip()
+            roll_no = match.group(2)
+        else:
+            display_name = full_name
+            roll_no = '-'
+        if ' ' in time_str:
+            date_part, time_part = time_str.split(' ', 1)
+        else:
+            date_part = time_str
+            time_part = ''
+        # Convert YYYY-MM-DD to DD-MM-YYYY
+        try:
+            date_part = datetime.strptime(date_part, "%Y-%m-%d").strftime("%d-%m-%Y")
+        except ValueError:
+            pass
+        if date_part not in grouped:
+            grouped[date_part] = OrderedDict()
+        if lecture_name not in grouped[date_part]:
+            grouped[date_part][lecture_name] = []
+        grouped[date_part][lecture_name].append({
+            'name': display_name,
+            'roll_no': roll_no,
+            'time': time_part,
+        })
 
     return render_template(
         "attendance.html",
-        rows=rows
+        grouped=grouped
     )
 
 

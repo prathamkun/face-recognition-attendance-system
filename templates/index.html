@@ -47,8 +47,14 @@
     </div>
   </div>
 
-  <!-- START SESSION -->
+  <!-- START / STOP SESSION -->
   <div class="custom-card mt-4">
+    {% if active_session %}
+    <h5>Session Active: {{ active_session[0] }}</h5>
+    <form method="POST" action="/stop_session" class="mt-2">
+      <button class="btn btn-crimson">Stop Session</button>
+    </form>
+    {% else %}
     <h5>Start Lecture Session</h5>
     <form method="POST" action="/start_session" class="row g-2 mt-2">
       <div class="col-md-5">
@@ -61,6 +67,7 @@
         <button class="btn btn-crimson w-100">Start</button>
       </div>
     </form>
+    {% endif %}
   </div>
 
   <!-- CAMERA SECTION -->
