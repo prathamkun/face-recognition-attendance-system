@@ -71,31 +71,35 @@
   </div>
 
   <!-- CAMERA SECTION -->
-  <div class="row mt-4 g-3">
+  <div class="row mt-4 g-3 align-items-stretch">
 
-    <div class="col-md-6">
-      <div class="custom-card">
+    <div class="col-md-6 d-flex">
+      <div class="custom-card w-100 d-flex flex-column">
         <h5>Live Camera</h5>
 
-        <video id="video" autoplay playsinline muted class="w-100 mt-3 rounded"></video>
+        <video id="video" autoplay playsinline muted class="w-100 mt-3 rounded"
+               style="aspect-ratio: 4/3; object-fit: cover; background: #000;"></video>
 
-        <button class="btn btn-crimson w-100 mt-3"
-                onclick="initCamera(); startSmart();">
-          Start Recognition
-        </button>
+        <div class="mt-auto pt-3">
+          <button class="btn btn-crimson w-100"
+                  onclick="if(!hasActiveSession){ document.getElementById('result').innerText='Please start a lecture session first!'; return; } initCamera(); startSmart();">
+            Start Recognition
+          </button>
 
-        <button class="btn btn-outline-crimson w-100 mt-2"
-                onclick="stopSmart();">
-          Stop
-        </button>
+          <button class="btn btn-outline-crimson w-100 mt-2"
+                  onclick="stopSmart();">
+            Stop
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="col-md-6">
-      <div class="custom-card">
+    <div class="col-md-6 d-flex">
+      <div class="custom-card w-100 d-flex flex-column">
         <h5>Recognition Result</h5>
 
-        <canvas id="canvas" class="w-100 mt-3 rounded"></canvas>
+        <canvas id="canvas" class="w-100 mt-3 rounded"
+                style="aspect-ratio: 4/3; background: #000;"></canvas>
 
         <div id="result" class="mt-3 text-muted">
           Waiting...
@@ -133,6 +137,7 @@ let confirmedNames = new Set();
 
 const REQUIRED_CONFIRM = 3;
 const INTERVAL_MS = 1500;
+const hasActiveSession = {{ 'true' if active_session else 'false' }};
 
 
 /* =============================
@@ -201,6 +206,11 @@ video.addEventListener("loadedmetadata", () => {
    START RECOGNITION
 ============================= */
 function startSmart() {
+
+  if (!hasActiveSession) {
+      document.getElementById("result").innerText = "Please start a lecture session first!";
+      return;
+  }
 
   if (intervalId) return;
 
