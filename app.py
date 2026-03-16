@@ -7,6 +7,7 @@ import face_recognition
 import numpy as np
 from datetime import datetime, timedelta
 import os
+import io
 import base64
 import subprocess
 import sys
@@ -409,6 +410,24 @@ def register_face():
         conn.close()
         return jsonify({"success": False, "message": "Roll number already registered"})
     conn.close()
+
+    # Check if this face is already registered
+    if known_encodings:
+        first_img_b64 = images_base64[0]
+        if "," in first_img_b64:
+            first_img_b64 = first_img_b64.split(",")[1]
+        img_data = base64.b64decode(first_img_b64)
+        img = face_recognition.load_image_file(io.BytesIO(img_data))
+        new_encodings = face_recognition.face_encodings(img)
+        if new_encodings:
+            distances = face_recognition.face_distance(known_encodings, new_encodings[0])
+            if min(distances) < 0.45:
+                best_idx = int(np.argmin(distances))
+                existing_name = known_names[best_idx]
+                return jsonify({
+                    "success": False,
+                    "message": f"This face is already registered as {existing_name}!"
+                })
 
     # Use roll_no as dataset folder name for uniqueness
     folder_name = f"{name} ({roll_no})"
