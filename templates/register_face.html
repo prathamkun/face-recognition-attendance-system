@@ -50,7 +50,10 @@
 
         <div class="mb-3">
             <label for="rollNo" class="form-label fw-bold">Roll Number</label>
-            <input type="text" class="form-control form-control-lg" id="rollNo" placeholder="Enter roll number (must be unique)" required>
+            <div class="input-group input-group-lg">
+                <span class="input-group-text fw-bold" style="background-color: #1e1e1e; color: var(--accent, #8B0000); border: 1px solid var(--border-color, #2a2a2a); font-size: 1.1rem; padding: 10px 14px;">C-</span>
+                <input type="text" class="form-control form-control-lg" id="rollNo" placeholder="Enter number only (e.g. 12)" required inputmode="numeric" pattern="[0-9]*" style="margin-bottom: 0;">
+            </div>
             <div id="rollNoFeedback" class="mt-1 small"></div>
         </div>
 
@@ -115,11 +118,22 @@ function startCamera() {
 
 startCamera();
 
+// Strip non-digit characters from roll number input
+rollNoInput.addEventListener('input', function() {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+
+// Build the full roll number with "C-" prefix
+function getFullRollNo() {
+    const num = rollNoInput.value.trim();
+    return num ? 'C-' + num : '';
+}
+
 // Check roll number uniqueness when user leaves the field
 let checkTimeout;
 rollNoInput.addEventListener('input', function() {
     clearTimeout(checkTimeout);
-    const rollNo = rollNoInput.value.trim();
+    const rollNo = getFullRollNo();
     
     if (!rollNo) {
         rollNoFeedback.innerHTML = '';
@@ -127,7 +141,7 @@ rollNoInput.addEventListener('input', function() {
         return;
     }
 
-    rollNoFeedback.innerHTML = '<span class="text-muted">Checking...</span>';
+    rollNoFeedback.innerHTML = '<span class="text-muted">Checking C-' + rollNoInput.value.trim() + '...</span>';
 
     checkTimeout = setTimeout(() => {
         fetch('/check_roll_no', {
@@ -138,10 +152,10 @@ rollNoInput.addEventListener('input', function() {
         .then(res => res.json())
         .then(data => {
             if (data.exists) {
-                rollNoFeedback.innerHTML = '<span class="text-danger fw-bold">Roll number already registered</span>';
+                rollNoFeedback.innerHTML = '<span class="text-danger fw-bold">Roll number C-' + rollNoInput.value.trim() + ' already registered</span>';
                 rollNoValid = false;
             } else {
-                rollNoFeedback.innerHTML = '<span class="text-success fw-bold">Roll number available</span>';
+                rollNoFeedback.innerHTML = '<span class="text-success fw-bold">Roll number C-' + rollNoInput.value.trim() + ' available</span>';
                 rollNoValid = true;
             }
         });
@@ -150,7 +164,7 @@ rollNoInput.addEventListener('input', function() {
 
 function startRegistration() {
     const name = nameInput.value.trim();
-    const rollNo = rollNoInput.value.trim();
+    const rollNo = getFullRollNo();
 
     if (!name) {
         alert("Please enter a name first!");
@@ -207,7 +221,7 @@ function captureFrames() {
 
 function sendDataToServer() {
     const name = nameInput.value.trim();
-    const rollNo = rollNoInput.value.trim();
+    const rollNo = getFullRollNo();
     
     fetch('/register_face', {
         method: 'POST',

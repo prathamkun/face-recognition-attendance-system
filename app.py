@@ -11,6 +11,7 @@ import io
 import base64
 import subprocess
 import sys
+import re
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -369,11 +370,19 @@ def predict():
 # REGISTER FACE
 # =============================
 
+def normalize_roll_no(raw):
+    """Normalize roll number to canonical 'C-<digits>' format.
+    Strips any existing C-/c- prefix and non-digit characters,
+    then prepends 'C-'."""
+    cleaned = re.sub(r'[^0-9]', '', raw)
+    return f'C-{cleaned}' if cleaned else ''
+
+
 @app.route("/check_roll_no", methods=["POST"])
 @login_required
 def check_roll_no():
     data = request.json
-    roll_no = data.get("roll_no", "").strip()
+    roll_no = normalize_roll_no(data.get("roll_no", ""))
     if not roll_no:
         return jsonify({"exists": False})
     conn = sqlite3.connect(DB_FILE)
@@ -396,7 +405,7 @@ def register_face():
     data = request.json
 
     name = data.get("name")
-    roll_no = data.get("roll_no", "").strip()
+    roll_no = normalize_roll_no(data.get("roll_no", ""))
     images_base64 = data.get("images", [])
 
     if not name or not roll_no or not images_base64:
