@@ -126,7 +126,10 @@ rollNoInput.addEventListener('input', function() {
 // Build the full roll number with "C-" prefix
 function getFullRollNo() {
     const num = rollNoInput.value.trim();
-    return num ? 'C-' + num : '';
+
+    if (!num) return '';
+
+    return 'C-' + num.padStart(2, '0');
 }
 
 // Check roll number uniqueness when user leaves the field

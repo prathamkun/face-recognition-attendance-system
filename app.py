@@ -371,11 +371,12 @@ def predict():
 # =============================
 
 def normalize_roll_no(raw):
-    """Normalize roll number to canonical 'C-<digits>' format.
-    Strips any existing C-/c- prefix and non-digit characters,
-    then prepends 'C-'."""
-    cleaned = re.sub(r'[^0-9]', '', raw)
-    return f'C-{cleaned}' if cleaned else ''
+    digits = re.sub(r'[^0-9]', '', raw)
+
+    if not digits:
+        return ''
+
+    return f"C-{int(digits):02d}"
 
 
 @app.route("/check_roll_no", methods=["POST"])
