@@ -100,19 +100,19 @@ http://127.0.0.1:5000
 
 ---
 ## 🧠 Algorithm Used
-Face detection & encoding using face_recognition (dlib-based model)
-Matching using Euclidean Distance
-Threshold-based recognition (0.50)
+- Face detection & encoding using face_recognition (dlib-based model)
+- Matching using Euclidean Distance
+- Threshold-based recognition (0.50)
 
 ---
 
 
 ## 🛡️ Key Functionalities
-✅ Multi-frame confirmation (prevents false detection)
-✅ Session timer system
-✅ Unique attendance per lecture
-✅ Roll number validation (auto format like 03)
-✅ Error handling for camera & recognition
+- ✅ Multi-frame confirmation (prevents false detection)
+- ✅ Session timer system
+- ✅ Unique attendance per lecture
+- ✅ Roll number validation (auto format like 03)
+- ✅ Error handling for camera & recognition
 
 ---
 
