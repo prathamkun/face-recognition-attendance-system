@@ -142,27 +142,27 @@ time
 ---
 
 ## ⚠️ Notes
-Dataset should NOT be pushed to GitHub (use .gitignore)
-Ensure camera permission is enabled
-Best accuracy with clear face images
+- Dataset should NOT be pushed to GitHub (use .gitignore)
+- Ensure camera permission is enabled
+- Best accuracy with clear face images
 
 ---
 
 ## 🔮 Future Improvements
-🌐 Cloud deployment
-📱 Mobile app integration
-📷 Multi-camera support
-📊 Analytics dashboard
-🤖 Deep learning models (CNN, FaceNet)
+- 🌐 Cloud deployment
+- 📱 Mobile app integration
+- 📷 Multi-camera support
+- 📊 Analytics dashboard
+- 🤖 Deep learning models (CNN, FaceNet)
 
 ---
 
 
 ## 👨‍💻 Contributors
-Prathamesh Borkar
-Manas Ghadshi
-Satyam Khandual
-Abhi Mhaparle
+- Prathamesh Borkar
+- Manas Ghadshi
+- Satyam Khandual
+- Abhi Mhaparle
 
 ---
 
