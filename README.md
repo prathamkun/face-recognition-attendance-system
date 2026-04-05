@@ -5,6 +5,7 @@ An intelligent and automated attendance system that uses face recognition techno
 --
 
 ## 🚀 Features
+```
 🔐 Admin Login & Signup System
 🎥 Real-time Face Recognition using Webcam
 🧠 Machine Learning-based Face Encoding
@@ -14,6 +15,7 @@ An intelligent and automated attendance system that uses face recognition techno
 🧾 Live Attendance Viewing Dashboard
 👤 Face Registration via Website
 📱 Responsive UI (Mobile Supported)
+```
 --
 ## 🛠️ Tech Stack
 Frontend: HTML, CSS, Bootstrap
