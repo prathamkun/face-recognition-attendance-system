@@ -1,188 +1,81 @@
-# Smart Face Recognition Attendance System
+#  Face Recognition Based Attendance System
 
-A web-based **AI-powered attendance system** that automatically marks attendance using **face recognition**.  
-It prevents proxy attendance and manages lecture sessions with time limits.
+An intelligent and automated attendance system that uses face recognition technology to detect and record attendance in real-time. This system eliminates manual effort and prevents proxy attendance using AI-based verification.
 
-Built with **Flask, OpenCV, Face Recognition, SQLite, and Bootstrap**.
-
----
+--
 
 ## 🚀 Features
-
-- 🔐 Admin Login & Signup
-- 📷 Face Recognition Attendance
-- ⏱ Lecture Session Timer
-- 👤 Prevents Proxy Attendance
-- 📊 Attendance Records Dashboard
-- 📱 Mobile Camera Compatible
-- 💾 SQLite Database Storage
-- 🎯 AI Face Encoding using `face_recognition`
-
----
-
-## 🧠 How It Works
-
-1. Admin logs into the system
-2. Admin starts a **lecture session** with duration
-3. Camera captures student faces
-4. System compares with **trained encodings**
-5. If matched → attendance is marked
-6. Each student can be marked **only once per session**
-
----
-
-## 🏗 Project Structure
+🔐 Admin Login & Signup System
+🎥 Real-time Face Recognition using Webcam
+🧠 Machine Learning-based Face Encoding
+⏱️ Session-based Attendance Tracking
+❌ Prevents Duplicate Attendance
+📊 Attendance Records Storage (SQLite)
+🧾 Live Attendance Viewing Dashboard
+👤 Face Registration via Website
+📱 Responsive UI (Mobile Supported)
+--
+## 🛠️ Tech Stack
+Frontend: HTML, CSS, Bootstrap
+Backend: Python (Flask)
+Libraries: OpenCV, face_recognition, NumPy
+Database: SQLite
+Others: Flask-Login, Pickle
+--
+## 📂 Project Structure
 ```
-face-recognition-attendance-system
+face-recognition-system/
 │
-├── app.py # Main Flask application
-├── train.py # Face encoding training script
-├── encodings.pkl # Saved trained face encodings
-├── attendance.db # SQLite database
-├── requirements.txt # Python dependencies
+├── app.py
+├── train.py
+├── encodings.pkl
+├── attendance.db
+├── requirements.txt
 │
-├── dataset/ # Face images for training
+├── dataset/
+│   └── person_name/
+│       ├── 1.jpg
+│       ├── 2.jpg
 │
 ├── templates/
-│ ├── index.html
-│ ├── login.html
-│ ├── signup.html
-│ └── attendance.html
+│   ├── index.html
+│   ├── login.html
+│   ├── signup.html
+│   ├── attendance.html
+│   ├── register_face.html
 │
 ├── static/
-│ └── style.css
+│   └── style.css
 │
-└── .gitignore
+└── README.md
 ```
-
----
-
-## ⚙️ Installation
-
-Clone the repository:
-
-```bash
-git clone https://github.com/prathamkun/face-recognition-attendance-system.git
-cd face-recognition-attendance-system
+--
+⚙️ Installation & Setup
+1️⃣ Clone Repository
 ```
-
-Create virtual environment:
+git clone https://github.com/your-username/face-recognition-system.git
+cd face-recognition-system
+```
+--
+2️⃣ Create Virtual Environment
 ```
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate   # Mac/Linux
+venv\Scripts\activate      # Windows
 ```
-
-Install dependencies:
+---
+3️⃣ Install Dependencies
 ```
 pip install -r requirements.txt
 ```
-Add Face Dataset:
- create Folder structure like:
- ```
-dataset/
-   student_name/
-       img1.jpg
-       img2.jpg
-       img3.jpg
-```
-Example:
-```
-dataset/
-   john/
-       1.jpg
-       2.jpg
-   alice/
-       1.jpg
-       2.jpg
-```
-Train Face Model:
-Run
+---
+4️⃣ Train Model
 ```
 python train.py
 ```
-This will generate:
+👉 This will generate:
 ```
-encoding.pkl
-```
-which stores all face embeddings
----
-▶️ Run Application
-```
-python app.py
-```
-Open browser:
-```
-http://127.0.0.1:5000
+encodings.pkl
 ```
 ---
-📊 Attendance Workflow
-
-1️⃣ Login as admin
-2️⃣ Start lecture session
-3️⃣ Students face the camera
-4️⃣ AI detects face
-5️⃣ Attendance marked automatically
-
-Each student is recorded once per session only.
----
-🛠 Tech Stack
-Technology        |	Purpose
-Python	           | Backend
-Flask	            | Web framework
-OpenCV	           | Camera processing
-face_recognition 	| Face embeddings
-SQLite	           | Database
-Bootstrap        	| UI
-JavaScript       	| Camera + API calls
----
-📱 Mobile Support
-
-The system supports mobile browsers using:
-```
-navigator.mediaDevices.getUserMedia()
-```
-Students can mark attendance using their phone camera.
----
-🔐 Security
-
-Admin authentication system
-
-Prevents duplicate attendance
-
-Session-based lecture attendance
----
-☁ Deployment
-
-Recommended platforms:
-
-Railway
-
-Render
-
-AWS
-
-Docker
-
-Run with production server:
-```
-gunicorn app:app
-```
----
-📌 Future Improvements
-
-Student registration UI
-
-Live face capture dataset
-
-Email attendance reports
-
-Admin dashboard analytics
-
-Face anti-spoof detection
-
----
-Group Members 
-
-
- 
 
