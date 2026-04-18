@@ -31,6 +31,11 @@ body {
     margin-bottom: 25px;
 }
 
+.top-bar > div:last-child {
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
 /* ===== CARD STYLE ===== */
 
 .custom-card,
@@ -59,6 +64,12 @@ select:focus {
     border-color: var(--accent) !important;
     box-shadow: none !important;
     outline: none;
+}
+
+input::placeholder,
+select::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 1;
 }
 
 /* ===== BUTTONS ===== */
@@ -131,10 +142,12 @@ a:hover {
         gap: 10px;
     }
 
-    .top-bar div:last-child {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px;
+    .top-bar > div:last-child {
+        margin-left: 0;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 8px;
     }
 
     .row {
